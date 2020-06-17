@@ -1,0 +1,42 @@
+<?php
+include"../../koneksi.php";
+session_start();
+$id_pembeli = $_SESSION['id_pembeli'];
+$q_aman = mysql_query("SELECT * from chekout where id_pembeli='$id_pembeli'");
+$aman = mysql_num_rows($q_aman);
+if($aman==0)
+
+{
+$id_produk = $_POST['id_produk'];
+$qty = $_POST['qty'];
+$harga = $_POST['harga'];
+$total_harga = $qty*$harga;
+$qryproduk = mysql_query("SELECT * from keranjang where id_produk='$id_produk'");
+$q_stok = mysql_query("SELECT * from produk where id_produk='$id_produk'");
+$d_stok = mysql_fetch_array($q_stok);
+$stok = $d_stok['stok'];
+$siso_stok = $stok-$qty;
+mysql_query("UPDATE produk set stok='$siso_stok' where id_produk='$id_produk'");
+$data = mysql_fetch_array($qryproduk);
+$idpro = $data['id_produk'];
+if($id_produk==$idpro)
+{
+	$q_qty = mysql_query("SELECT * from keranjang where id_produk='$id_produk'");
+	$data_qty = mysql_fetch_array($q_qty);
+	$qty1 = $data_qty['qty'];
+	$qty2 = $qty1 + $qty;
+	$tot = $harga * $qty2;
+mysql_query("UPDATE keranjang set id_pembeli='$id_pembeli',id_produk='$id_produk',qty='$qty2',harga='$harga',total_harga='$tot' where id_produk='$id_produk'");
+header("location:detail.php?page=keranjang");
+}
+
+else{
+mysql_query("INSERT into keranjang set id_pembeli='$id_pembeli',id_produk='$id_produk',qty='$qty',harga='$harga',total_harga='$total_harga'");
+header("location:detail.php?page=keranjang");
+}
+}
+else if($aman>=1)
+{
+	header("location:index.php?pesan=blok");
+}
+?>
